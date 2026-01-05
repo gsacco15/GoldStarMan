@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DEFAULT_BUCKETS } from '@/lib/buckets';
 import { getUser, saveUser, addGoal } from '@/lib/storage';
 import { generateWeeklyCards } from '@/lib/card-generator';
+import { getQuarterEnd, getNextQuarterEnd, getYearEnd } from '@/lib/date-utils';
 import GoldStar from '@/components/GoldStar';
 import BucketIcon from '@/components/BucketIcon';
 
@@ -21,6 +22,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [selectedBuckets, setSelectedBuckets] = useState<string[]>([]);
   const [goals, setGoals] = useState<GoalForm[]>([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [currentGoal, setCurrentGoal] = useState<GoalForm>({
     bucket: '',
     title: '',
@@ -69,6 +71,31 @@ export default function OnboardingPage() {
       weeklyMinimum: 3,
       targetDate: getDefaultTargetDate(),
     });
+    setShowAdvanced(false);
+  }
+
+  function handleDurationChange(durationType: string) {
+    let newTargetDate = '';
+    switch (durationType) {
+      case 'this-quarter':
+        newTargetDate = getQuarterEnd();
+        break;
+      case 'next-quarter':
+        newTargetDate = getNextQuarterEnd();
+        break;
+      case 'this-year':
+        newTargetDate = getYearEnd();
+        break;
+      case 'ongoing':
+        // Set to 10 years in the future
+        const future = new Date();
+        future.setFullYear(future.getFullYear() + 10);
+        newTargetDate = future.toISOString().split('T')[0];
+        break;
+      default:
+        newTargetDate = currentGoal.targetDate;
+    }
+    setCurrentGoal({ ...currentGoal, targetDate: newTargetDate });
   }
 
   function handleFinish() {
@@ -297,9 +324,57 @@ export default function OnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-3">
-                    Target Date
-                  </label>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300">
+                      Target Date
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
+                    >
+                      {showAdvanced ? 'Hide' : 'Advanced'} ▾
+                    </button>
+                  </div>
+
+                  {showAdvanced && (
+                    <div className="mb-4 p-4 bg-stone-50/50 dark:bg-stone-900/50 rounded-xl border border-stone-200/50 dark:border-stone-800/50 slide-up">
+                      <p className="text-xs font-semibold text-stone-600 dark:text-stone-400 mb-3">
+                        GOAL DURATION
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleDurationChange('this-quarter')}
+                          className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                        >
+                          This quarter
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDurationChange('next-quarter')}
+                          className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                        >
+                          Next quarter
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDurationChange('this-year')}
+                          className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                        >
+                          This year
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDurationChange('ongoing')}
+                          className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                        >
+                          Ongoing
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <input
                     type="date"
                     value={currentGoal.targetDate}

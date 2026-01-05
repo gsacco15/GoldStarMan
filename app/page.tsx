@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUser, createUser } from '@/lib/storage';
 import GoldStar from '@/components/GoldStar';
+import ChartIcon from '@/components/ChartIcon';
 
 export default function HomePage() {
   const router = useRouter();
@@ -88,7 +89,9 @@ export default function HomePage() {
             </div>
 
             <div className="card p-6 slide-up" style={{ animationDelay: '0.6s' }}>
-              <div className="text-4xl mb-4">📊</div>
+              <div className="mb-4 flex justify-center">
+                <ChartIcon size={48} className="text-stone-600 dark:text-stone-400" />
+              </div>
               <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-50 mb-2">
                 Stay Balanced
               </h3>

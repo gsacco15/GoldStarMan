@@ -131,3 +131,43 @@ export function isInMonth(date: string, monthStart: string): boolean {
   const monthEndDate = endOfMonth(monthStartDate);
   return d >= startOfMonth(monthStartDate) && d <= monthEndDate;
 }
+
+// Quarter utilities
+export function getQuarter(date: Date | string = new Date()): number {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  const month = d.getMonth(); // 0-11
+  return Math.floor(month / 3) + 1; // 1-4
+}
+
+export function getQuarterEnd(date: Date | string = new Date()): string {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  const quarter = getQuarter(d);
+  const year = d.getFullYear();
+
+  // Q1: March 31, Q2: June 30, Q3: September 30, Q4: December 31
+  const lastMonth = quarter * 3 - 1; // 2, 5, 8, 11 (March, June, Sept, Dec)
+  const quarterEndDate = new Date(year, lastMonth + 1, 0); // Last day of the month
+
+  return formatDate(quarterEndDate);
+}
+
+export function getNextQuarterEnd(date: Date | string = new Date()): string {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  const quarter = getQuarter(d);
+  const year = d.getFullYear();
+
+  // Next quarter
+  const nextQuarter = quarter === 4 ? 1 : quarter + 1;
+  const nextYear = quarter === 4 ? year + 1 : year;
+
+  const lastMonth = nextQuarter * 3 - 1;
+  const quarterEndDate = new Date(nextYear, lastMonth + 1, 0);
+
+  return formatDate(quarterEndDate);
+}
+
+export function getYearEnd(date: Date | string = new Date()): string {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  const year = d.getFullYear();
+  return formatDate(new Date(year, 11, 31)); // December 31
+}

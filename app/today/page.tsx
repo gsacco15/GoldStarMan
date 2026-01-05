@@ -6,6 +6,7 @@ import Navigation from '@/components/Navigation';
 import GoldStar from '@/components/GoldStar';
 import BucketIcon from '@/components/BucketIcon';
 import Confetti from '@/components/Confetti';
+import ChartIcon from '@/components/ChartIcon';
 import { getUser, getCardsByDate, updateDailyCard, getGoals } from '@/lib/storage';
 import { getTodayString, formatDisplayDate, formatDayOfWeek } from '@/lib/date-utils';
 import { getWeeklyStats, hasMetWeeklyMinimum } from '@/lib/card-generator';
@@ -96,7 +97,7 @@ export default function TodayPage() {
             <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-50">
               This Week
             </h2>
-            <span className="text-3xl opacity-50">📊</span>
+            <ChartIcon size={32} className="text-stone-400 dark:text-stone-600" />
           </div>
 
           <div className="grid grid-cols-2 gap-5">
