@@ -3,15 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import GoldStar from './GoldStar';
+import NavIcon from './NavIcon';
 
 export default function Navigation() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/today', label: 'Today', icon: 'star' },
-    { href: '/calendar', label: 'Calendar', icon: '📅' },
-    { href: '/goals', label: 'Goals', icon: '🎯' },
-    { href: '/settings', label: 'Settings', icon: '⚙️' },
+    { href: '/today', label: 'Today', icon: 'star' as const },
+    { href: '/calendar', label: 'Calendar', icon: 'calendar' as const },
+    { href: '/goals', label: 'Goals', icon: 'goals' as const },
+    { href: '/settings', label: 'Settings', icon: 'settings' as const },
   ];
 
   return (
@@ -33,7 +34,7 @@ export default function Navigation() {
                 {item.icon === 'star' ? (
                   <GoldStar size={28} animate={isActive} />
                 ) : (
-                  <span className="text-3xl">{item.icon}</span>
+                  <NavIcon icon={item.icon} size={28} />
                 )}
                 <span className="text-xs font-medium tracking-wide">{item.label}</span>
               </Link>

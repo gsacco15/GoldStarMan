@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import GoldStar from '@/components/GoldStar';
 import BucketIcon from '@/components/BucketIcon';
+import Confetti from '@/components/Confetti';
 import { getUser, getCardsByDate, updateDailyCard, getGoals } from '@/lib/storage';
 import { getTodayString, formatDisplayDate, formatDayOfWeek } from '@/lib/date-utils';
 import { getWeeklyStats, hasMetWeeklyMinimum } from '@/lib/card-generator';
@@ -16,6 +17,7 @@ export default function TodayPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [weeklyStats, setWeeklyStats] = useState({ totalStars: 0, minimumsMet: 0, totalMinimums: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     const user = getUser();
@@ -47,6 +49,11 @@ export default function TodayPage() {
       starsEarned,
       completedAt: new Date().toISOString(),
     });
+
+    // Trigger confetti for done or partial completion
+    if (status === 'done' || status === 'partial') {
+      setShowConfetti(true);
+    }
 
     loadData();
   }
@@ -295,6 +302,7 @@ export default function TodayPage() {
         )}
       </div>
 
+      <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
       <Navigation />
     </div>
   );

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import BucketIcon from '@/components/BucketIcon';
+import Modal from '@/components/Modal';
 import { getUser, getGoals, addGoal, updateGoal, deleteGoal } from '@/lib/storage';
 import { getDaysRemaining, formatDisplayDate } from '@/lib/date-utils';
 import { generateCardsForGoal, hasMetWeeklyMinimum } from '@/lib/card-generator';
@@ -15,6 +16,12 @@ export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [modal, setModal] = useState<{ isOpen: boolean; type: 'alert' | 'confirm' | 'success'; title: string; message: string; onConfirm?: () => void }>({
+    isOpen: false,
+    type: 'alert',
+    title: '',
+    message: '',
+  });
 
   const [newGoal, setNewGoal] = useState({
     bucket: 'work',
@@ -49,7 +56,12 @@ export default function GoalsPage() {
 
   function handleAddGoal() {
     if (!newGoal.title.trim()) {
-      alert('Please enter a goal title');
+      setModal({
+        isOpen: true,
+        type: 'alert',
+        title: 'Missing Information',
+        message: 'Please enter a goal title to continue.',
+      });
       return;
     }
 
@@ -72,6 +84,14 @@ export default function GoalsPage() {
 
     setIsAddingGoal(false);
     loadGoals();
+
+    // Show success message
+    setModal({
+      isOpen: true,
+      type: 'success',
+      title: 'Goal Created!',
+      message: `Your goal "${goal.title}" has been added successfully.`,
+    });
   }
 
   function handleToggleStatus(goalId: string, currentStatus: Goal['status']) {
@@ -81,10 +101,16 @@ export default function GoalsPage() {
   }
 
   function handleDeleteGoal(goalId: string) {
-    if (confirm('Are you sure you want to delete this goal?')) {
-      deleteGoal(goalId);
-      loadGoals();
-    }
+    setModal({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Delete Goal',
+      message: 'Are you sure you want to delete this goal? This action cannot be undone.',
+      onConfirm: () => {
+        deleteGoal(goalId);
+        loadGoals();
+      },
+    });
   }
 
   const activeGoals = goals.filter(g => g.status === 'active');
@@ -234,6 +260,14 @@ export default function GoalsPage() {
                 const daysRemaining = getDaysRemaining(goal.targetDate);
                 const isMetThisWeek = hasMetWeeklyMinimum(goal.id);
 
+                // Calculate progress percentage
+                const goalStart = new Date(goal.id.split('-')[0]); // Rough estimate from ID timestamp
+                const goalEnd = new Date(goal.targetDate);
+                const today = new Date();
+                const totalDays = Math.max(1, Math.ceil((goalEnd.getTime() - goalStart.getTime()) / (1000 * 60 * 60 * 24)));
+                const daysElapsed = Math.max(0, Math.ceil((today.getTime() - goalStart.getTime()) / (1000 * 60 * 60 * 24)));
+                const progressPercentage = Math.min(100, Math.max(0, (daysElapsed / totalDays) * 100));
+
                 return (
                   <div key={goal.id} className="card p-6">
                     <div className="flex items-start gap-4 mb-4">
@@ -247,6 +281,21 @@ export default function GoalsPage() {
                             {goal.description}
                           </p>
                         )}
+
+                        {/* Progress bar */}
+                        <div className="mt-4 mb-3">
+                          <div className="flex items-center justify-between text-xs text-stone-600 dark:text-stone-400 mb-2">
+                            <span>Progress to target date</span>
+                            <span className="font-semibold">{Math.round(progressPercentage)}%</span>
+                          </div>
+                          <div className="h-2 bg-stone-200/60 dark:bg-stone-800/60 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-500"
+                              style={{ width: `${progressPercentage}%` }}
+                            />
+                          </div>
+                        </div>
+
                         <div className="flex flex-wrap gap-2 mt-3">
                           <span className="px-3 py-1 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs rounded-lg font-medium">
                             {getBucketDisplayName(goal.bucket)}
@@ -353,6 +402,15 @@ export default function GoalsPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={modal.onConfirm}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+      />
 
       <Navigation />
     </div>

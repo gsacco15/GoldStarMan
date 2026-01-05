@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import GoldStar from '@/components/GoldStar';
-import { getUser, getCardsByDateRange } from '@/lib/storage';
+import DayDetailModal from '@/components/DayDetailModal';
+import { getUser, getCardsByDateRange, getGoals } from '@/lib/storage';
 import {
   getWeekStart,
   getWeekDates,
@@ -20,7 +21,7 @@ import {
   formatDayOfWeek,
   isInMonth,
 } from '@/lib/date-utils';
-import { DailyCard } from '@/types';
+import { DailyCard, Goal } from '@/types';
 
 type ViewMode = 'week' | 'month';
 
@@ -30,7 +31,9 @@ export default function CalendarPage() {
   const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart());
   const [currentMonthStart, setCurrentMonthStart] = useState(getMonthStart());
   const [dateCards, setDateCards] = useState<Map<string, DailyCard[]>>(new Map());
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     const user = getUser();
@@ -54,6 +57,7 @@ export default function CalendarPage() {
     const startDate = dates[0];
     const endDate = dates[dates.length - 1];
     const cards = getCardsByDateRange(startDate, endDate);
+    const allGoals = getGoals();
 
     // Group cards by date
     const cardsByDate = new Map<string, DailyCard[]>();
@@ -62,6 +66,7 @@ export default function CalendarPage() {
     });
 
     setDateCards(cardsByDate);
+    setGoals(allGoals);
     setIsLoading(false);
   }
 
@@ -224,7 +229,8 @@ export default function CalendarPage() {
               return (
                 <div
                   key={date}
-                  className={`card p-6 slide-up ${
+                  onClick={() => setSelectedDate(date)}
+                  className={`card p-6 slide-up cursor-pointer hover:shadow-xl transition-all ${
                     isToday
                       ? 'ring-2 ring-amber-500 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10'
                       : ''
@@ -323,7 +329,8 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={date}
-                    className={`aspect-square p-2 rounded-xl border-2 transition-all ${
+                    onClick={() => setSelectedDate(date)}
+                    className={`aspect-square p-2 rounded-xl border-2 transition-all cursor-pointer hover:scale-105 ${
                       isToday
                         ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20'
                         : stats.total > 0
@@ -398,6 +405,14 @@ export default function CalendarPage() {
           </div>
         )}
       </div>
+
+      <DayDetailModal
+        isOpen={selectedDate !== null}
+        onClose={() => setSelectedDate(null)}
+        date={selectedDate || ''}
+        cards={selectedDate ? (dateCards.get(selectedDate) || []) : []}
+        goals={goals}
+      />
 
       <Navigation />
     </div>
