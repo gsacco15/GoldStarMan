@@ -6,7 +6,8 @@ export interface Goal {
   title: string;
   description: string;
   weeklyMinimum: number; // How many cards to complete per week
-  targetDate: string; // ISO date string
+  startDate?: string; // ISO date string - when to start working on this goal
+  targetDate: string; // ISO date string - when to complete this goal
   status: 'active' | 'completed' | 'paused';
   createdAt: string; // ISO date string
 }

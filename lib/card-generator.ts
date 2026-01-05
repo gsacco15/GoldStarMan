@@ -29,9 +29,19 @@ export function generateWeeklyCards(weekStartDate?: string): void {
 
     // Generate cards for remaining days in the week
     // Distribute them across days that don't already have a card for this goal
-    const availableDays = weekDates.filter(
-      date => !existingGoalCards.some(card => card.date === date)
-    );
+    // Respect startDate and targetDate if set
+    const availableDays = weekDates.filter(date => {
+      // Skip if card already exists for this date
+      if (existingGoalCards.some(card => card.date === date)) return false;
+
+      // Skip if before start date
+      if (goal.startDate && date < goal.startDate) return false;
+
+      // Skip if after target date
+      if (date > goal.targetDate) return false;
+
+      return true;
+    });
 
     for (let i = 0; i < Math.min(cardsNeeded, availableDays.length); i++) {
       const card: DailyCard = {
@@ -72,9 +82,19 @@ export function generateCardsForGoal(goal: Goal, weekStartDate?: string): void {
   const cardsNeeded = Math.max(0, goal.weeklyMinimum - existingGoalCards.length);
 
   // Find days without cards for this goal
-  const availableDays = weekDates.filter(
-    date => !existingGoalCards.some(card => card.date === date)
-  );
+  // Respect startDate and targetDate if set
+  const availableDays = weekDates.filter(date => {
+    // Skip if card already exists for this date
+    if (existingGoalCards.some(card => card.date === date)) return false;
+
+    // Skip if before start date
+    if (goal.startDate && date < goal.startDate) return false;
+
+    // Skip if after target date
+    if (date > goal.targetDate) return false;
+
+    return true;
+  });
 
   const newCards: DailyCard[] = [];
 

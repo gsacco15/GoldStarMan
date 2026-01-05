@@ -139,16 +139,25 @@ export function getQuarter(date: Date | string = new Date()): number {
   return Math.floor(month / 3) + 1; // 1-4
 }
 
-export function getQuarterEnd(date: Date | string = new Date()): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
-  const quarter = getQuarter(d);
-  const year = d.getFullYear();
+export function getQuarterStart(quarter: number, year: number): string {
+  // Q1: Jan 1, Q2: Apr 1, Q3: Jul 1, Q4: Oct 1
+  const firstMonth = (quarter - 1) * 3; // 0, 3, 6, 9
+  const quarterStartDate = new Date(year, firstMonth, 1);
+  return formatDate(quarterStartDate);
+}
 
+export function getQuarterEnd(quarter: number, year: number): string {
   // Q1: March 31, Q2: June 30, Q3: September 30, Q4: December 31
   const lastMonth = quarter * 3 - 1; // 2, 5, 8, 11 (March, June, Sept, Dec)
   const quarterEndDate = new Date(year, lastMonth + 1, 0); // Last day of the month
-
   return formatDate(quarterEndDate);
+}
+
+export function getCurrentQuarterEnd(date: Date | string = new Date()): string {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  const quarter = getQuarter(d);
+  const year = d.getFullYear();
+  return getQuarterEnd(quarter, year);
 }
 
 export function getNextQuarterEnd(date: Date | string = new Date()): string {
@@ -160,14 +169,30 @@ export function getNextQuarterEnd(date: Date | string = new Date()): string {
   const nextQuarter = quarter === 4 ? 1 : quarter + 1;
   const nextYear = quarter === 4 ? year + 1 : year;
 
-  const lastMonth = nextQuarter * 3 - 1;
-  const quarterEndDate = new Date(nextYear, lastMonth + 1, 0);
-
-  return formatDate(quarterEndDate);
+  return getQuarterEnd(nextQuarter, nextYear);
 }
 
 export function getYearEnd(date: Date | string = new Date()): string {
   const d = typeof date === 'string' ? parseISO(date) : date;
   const year = d.getFullYear();
   return formatDate(new Date(year, 11, 31)); // December 31
+}
+
+// Get available quarters for selection (current year + next year)
+export function getAvailableQuarters(): Array<{ label: string; quarter: number; year: number }> {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const quarters = [];
+
+  for (let year = currentYear; year <= currentYear + 1; year++) {
+    for (let q = 1; q <= 4; q++) {
+      quarters.push({
+        label: `Q${q} ${year}`,
+        quarter: q,
+        year: year,
+      });
+    }
+  }
+
+  return quarters;
 }

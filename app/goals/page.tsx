@@ -6,7 +6,7 @@ import Navigation from '@/components/Navigation';
 import BucketIcon from '@/components/BucketIcon';
 import Modal from '@/components/Modal';
 import { getUser, getGoals, addGoal, updateGoal, deleteGoal } from '@/lib/storage';
-import { getDaysRemaining, formatDisplayDate, getQuarterEnd, getNextQuarterEnd, getYearEnd } from '@/lib/date-utils';
+import { getDaysRemaining, formatDisplayDate, getQuarterStart, getQuarterEnd, getCurrentQuarterEnd, getNextQuarterEnd, getYearEnd, getAvailableQuarters } from '@/lib/date-utils';
 import { generateCardsForGoal, hasMetWeeklyMinimum } from '@/lib/card-generator';
 import { Goal } from '@/types';
 import { DEFAULT_BUCKETS, getBucketDisplayName } from '@/lib/buckets';
@@ -29,6 +29,7 @@ export default function GoalsPage() {
     title: '',
     description: '',
     weeklyMinimum: 3,
+    startDate: undefined as string | undefined,
     targetDate: getDefaultTargetDate(),
   });
 
@@ -80,6 +81,7 @@ export default function GoalsPage() {
       title: '',
       description: '',
       weeklyMinimum: 3,
+      startDate: undefined,
       targetDate: getDefaultTargetDate(),
     });
 
@@ -96,11 +98,29 @@ export default function GoalsPage() {
     });
   }
 
-  function handleDurationChange(durationType: string) {
+  function handleQuarterSelection(type: 'start' | 'end', quarter: number, year: number) {
+    if (type === 'start') {
+      const startDate = getQuarterStart(quarter, year);
+      const endDate = getQuarterEnd(quarter, year);
+      setNewGoal({
+        ...newGoal,
+        startDate,
+        targetDate: endDate
+      });
+    } else {
+      // Only update end date
+      const endDate = getQuarterEnd(quarter, year);
+      setNewGoal({ ...newGoal, targetDate: endDate });
+    }
+  }
+
+  function handlePresetDuration(durationType: string) {
+    let newStartDate: string | undefined = undefined;
     let newTargetDate = '';
+
     switch (durationType) {
       case 'this-quarter':
-        newTargetDate = getQuarterEnd();
+        newTargetDate = getCurrentQuarterEnd();
         break;
       case 'next-quarter':
         newTargetDate = getNextQuarterEnd();
@@ -117,7 +137,8 @@ export default function GoalsPage() {
       default:
         newTargetDate = newGoal.targetDate;
     }
-    setNewGoal({ ...newGoal, targetDate: newTargetDate });
+
+    setNewGoal({ ...newGoal, startDate: newStartDate, targetDate: newTargetDate });
   }
 
   function handleToggleStatus(goalId: string, currentStatus: Goal['status']) {
@@ -247,7 +268,7 @@ export default function GoalsPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">
-                    Target Date
+                    Dates
                   </label>
                   <button
                     type="button"
@@ -259,49 +280,90 @@ export default function GoalsPage() {
                 </div>
 
                 {showAdvanced && (
-                  <div className="mb-4 p-4 bg-stone-50/50 dark:bg-stone-900/50 rounded-xl border border-stone-200/50 dark:border-stone-800/50 slide-up">
-                    <p className="text-xs font-semibold text-stone-600 dark:text-stone-400 mb-3">
-                      GOAL DURATION
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleDurationChange('this-quarter')}
-                        className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
-                      >
-                        This quarter
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDurationChange('next-quarter')}
-                        className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
-                      >
-                        Next quarter
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDurationChange('this-year')}
-                        className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
-                      >
-                        This year
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDurationChange('ongoing')}
-                        className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
-                      >
-                        Ongoing
-                      </button>
+                  <div className="mb-4 p-4 bg-stone-50/50 dark:bg-stone-900/50 rounded-xl border border-stone-200/50 dark:border-stone-800/50 slide-up space-y-4">
+                    <div>
+                      <p className="text-xs font-semibold text-stone-600 dark:text-stone-400 mb-2">
+                        QUICK SELECT BY QUARTER
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        {getAvailableQuarters().slice(0, 6).map(({ label, quarter, year }) => (
+                          <button
+                            key={label}
+                            type="button"
+                            onClick={() => handleQuarterSelection('start', quarter, year)}
+                            className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-stone-500 dark:text-stone-500">
+                        Click a quarter to set both start and end dates
+                      </p>
+                    </div>
+
+                    <div className="border-t border-stone-200 dark:border-stone-800 pt-4">
+                      <p className="text-xs font-semibold text-stone-600 dark:text-stone-400 mb-2">
+                        OR QUICK PRESETS
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handlePresetDuration('this-quarter')}
+                          className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                        >
+                          This quarter
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePresetDuration('this-year')}
+                          className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                        >
+                          This year
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePresetDuration('next-quarter')}
+                          className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                        >
+                          Next quarter
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePresetDuration('ongoing')}
+                          className="px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                        >
+                          Ongoing
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                <input
-                  type="date"
-                  value={newGoal.targetDate}
-                  onChange={(e) => setNewGoal({ ...newGoal, targetDate: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
-                />
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">
+                      Start Date (optional)
+                    </label>
+                    <input
+                      type="date"
+                      value={newGoal.startDate || ''}
+                      onChange={(e) => setNewGoal({ ...newGoal, startDate: e.target.value || undefined })}
+                      className="w-full p-3 rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">
+                      End Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={newGoal.targetDate}
+                      onChange={(e) => setNewGoal({ ...newGoal, targetDate: e.target.value })}
+                      className="w-full p-3 rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
