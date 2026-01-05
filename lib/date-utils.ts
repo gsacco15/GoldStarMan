@@ -1,4 +1,4 @@
-import { format, startOfWeek, endOfWeek, addDays, subDays, isToday, isPast, isFuture, differenceInDays, parseISO, startOfDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addDays, subDays, isToday, isPast, isFuture, differenceInDays, parseISO, startOfDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? parseISO(date) : date;
@@ -77,4 +77,57 @@ export function getDaysRemaining(targetDate: string): number {
 
 export function getDaysUntil(targetDate: string): number {
   return differenceInDays(parseISO(targetDate), new Date());
+}
+
+// Month utilities
+export function getMonthStart(date: Date | string = new Date()): string {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  return formatDate(startOfMonth(d));
+}
+
+export function getMonthEnd(date: Date | string = new Date()): string {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  return formatDate(endOfMonth(d));
+}
+
+export function getMonthDates(monthStart: Date | string): string[] {
+  const start = typeof monthStart === 'string' ? parseISO(monthStart) : monthStart;
+  const monthStartDate = startOfMonth(start);
+  const monthEndDate = endOfMonth(start);
+
+  // Get the first day of the calendar grid (may be from previous month)
+  const calendarStart = startOfWeek(monthStartDate, { weekStartsOn: 0 }); // Sunday
+
+  // Get the last day of the calendar grid (may be from next month)
+  const calendarEnd = endOfWeek(monthEndDate, { weekStartsOn: 0 }); // Saturday
+
+  const dates: string[] = [];
+  let currentDate = calendarStart;
+
+  while (currentDate <= calendarEnd) {
+    dates.push(formatDate(currentDate));
+    currentDate = addDays(currentDate, 1);
+  }
+
+  return dates;
+}
+
+export function addMonthsToDate(date: string, months: number): string {
+  return formatDate(addMonths(parseISO(date), months));
+}
+
+export function subMonthsFromDate(date: string, months: number): string {
+  return formatDate(subMonths(parseISO(date), months));
+}
+
+export function formatMonthYear(date: Date | string): string {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  return format(d, 'MMMM yyyy');
+}
+
+export function isInMonth(date: string, monthStart: string): boolean {
+  const d = parseISO(date);
+  const monthStartDate = parseISO(monthStart);
+  const monthEndDate = endOfMonth(monthStartDate);
+  return d >= startOfMonth(monthStartDate) && d <= monthEndDate;
 }
