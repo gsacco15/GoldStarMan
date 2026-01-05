@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import BucketIcon from '@/components/BucketIcon';
 import Modal from '@/components/Modal';
+import ShareGoalsModal from '@/components/ShareGoalsModal';
 import { getUser, getGoals, addGoal, updateGoal, deleteGoal } from '@/lib/storage';
 import { getDaysRemaining, formatDisplayDate, getQuarterStart, getQuarterEnd, getCurrentQuarterEnd, getNextQuarterEnd, getYearEnd, getAvailableQuarters } from '@/lib/date-utils';
 import { generateCardsForGoal, hasMetWeeklyMinimum } from '@/lib/card-generator';
@@ -17,6 +18,8 @@ export default function GoalsPage() {
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [modal, setModal] = useState<{ isOpen: boolean; type: 'alert' | 'confirm' | 'success'; title: string; message: string; onConfirm?: () => void }>({
     isOpen: false,
     type: 'alert',
@@ -41,12 +44,13 @@ export default function GoalsPage() {
   }
 
   useEffect(() => {
-    const user = getUser();
-    if (!user || !user.hasCompletedOnboarding) {
+    const userData = getUser();
+    if (!userData || !userData.hasCompletedOnboarding) {
       router.push('/onboarding');
       return;
     }
 
+    setUser(userData);
     loadGoals();
   }, [router]);
 
@@ -176,16 +180,27 @@ export default function GoalsPage() {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-stone-900 dark:via-stone-800 dark:to-amber-900/20 pb-24">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-4xl font-bold text-stone-900 dark:text-stone-100">
-            Goals
-          </h1>
-          <button
-            onClick={() => setIsAddingGoal(true)}
-            className="btn-primary px-6"
-          >
-            + Add Goal
-          </button>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-4xl font-bold text-stone-900 dark:text-stone-100">
+              Goals
+            </h1>
+            <button
+              onClick={() => setIsAddingGoal(true)}
+              className="btn-primary px-6"
+            >
+              + Add Goal
+            </button>
+          </div>
+          {activeGoals.length > 0 && (
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="btn-secondary px-5 py-2 text-sm flex items-center gap-2"
+            >
+              <span>📤</span>
+              <span>Share My Goals</span>
+            </button>
+          )}
         </div>
 
         {/* Add Goal Form */}
@@ -546,6 +561,13 @@ export default function GoalsPage() {
         title={modal.title}
         message={modal.message}
         type={modal.type}
+      />
+
+      <ShareGoalsModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        goals={activeGoals}
+        userName={user?.id || 'User'}
       />
 
       <Navigation />
