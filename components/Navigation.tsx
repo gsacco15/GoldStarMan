@@ -1,17 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import GoldStar from './GoldStar';
+import NavIcon from './NavIcon';
 
 export default function Navigation() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/today', label: 'Today', icon: '/assets/nav/today.png' },
-    { href: '/calendar', label: 'Calendar', icon: '/assets/nav/calendar.png' },
-    { href: '/goals', label: 'Goals', icon: '/assets/nav/goals.png' },
-    { href: '/settings', label: 'Settings', icon: '/assets/nav/settings.png' },
+    { href: '/today', label: 'Today', icon: 'star' as const },
+    { href: '/calendar', label: 'Calendar', icon: 'calendar' as const },
+    { href: '/goals', label: 'Goals', icon: 'goals' as const },
+    { href: '/settings', label: 'Settings', icon: 'settings' as const },
   ];
 
   return (
@@ -26,30 +27,16 @@ export default function Navigation() {
                 href={item.href}
                 className={`flex flex-col items-center gap-1.5 px-5 py-2.5 rounded-2xl transition-all duration-300 ${
                   isActive
-                    ? 'bg-amber-50/50 dark:bg-amber-900/20 scale-110'
-                    : 'hover:bg-stone-100/30 dark:hover:bg-stone-800/30 hover:scale-105'
+                    ? 'text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/20 scale-105'
+                    : 'text-stone-500 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100/30 dark:hover:bg-stone-800/30'
                 }`}
               >
-                <div className={`relative transition-all duration-300 ${
-                  isActive ? 'drop-shadow-lg' : 'opacity-70 hover:opacity-100'
-                }`}>
-                  <Image
-                    src={item.icon}
-                    alt={item.label}
-                    width={32}
-                    height={32}
-                    className={`transition-transform duration-300 ${
-                      isActive ? 'animate-pulse' : ''
-                    }`}
-                  />
-                </div>
-                <span className={`text-xs font-medium tracking-wide transition-colors ${
-                  isActive
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-stone-500 dark:text-stone-500'
-                }`}>
-                  {item.label}
-                </span>
+                {item.icon === 'star' ? (
+                  <GoldStar size={28} animate={isActive} />
+                ) : (
+                  <NavIcon icon={item.icon} size={28} />
+                )}
+                <span className="text-xs font-medium tracking-wide">{item.label}</span>
               </Link>
             );
           })}
