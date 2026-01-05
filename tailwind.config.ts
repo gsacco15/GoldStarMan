@@ -24,6 +24,9 @@ const config: Config = {
           900: '#78350f',
         },
       },
+      scale: {
+        '102': '1.02',
+      },
     },
   },
   plugins: [],
