@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     });
 
     const { data, error } = await resend.emails.send({
-      from: 'Gold Star Man <goals@goldstarman.app>',
+      from: 'Gold Star Man <onboarding@resend.dev>',
       to: [to],
       subject: `${fromName}'s ${year || new Date().getFullYear()} Goals`,
       html: emailHtml,
