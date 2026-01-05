@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
+import BucketIcon from '@/components/BucketIcon';
 import { getUser, getGoals, addGoal, updateGoal, deleteGoal } from '@/lib/storage';
 import { getDaysRemaining, formatDisplayDate } from '@/lib/date-utils';
 import { generateCardsForGoal, hasMetWeeklyMinimum } from '@/lib/card-generator';
 import { Goal } from '@/types';
-import { DEFAULT_BUCKETS, getBucketIcon, getBucketDisplayName } from '@/lib/buckets';
+import { DEFAULT_BUCKETS, getBucketDisplayName } from '@/lib/buckets';
 
 export default function GoalsPage() {
   const router = useRouter();
@@ -126,17 +127,22 @@ export default function GoalsPage() {
                 <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
                   Bucket
                 </label>
-                <select
-                  value={newGoal.bucket}
-                  onChange={(e) => setNewGoal({ ...newGoal, bucket: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
-                >
-                  {DEFAULT_BUCKETS.map(bucket => (
-                    <option key={bucket.name} value={bucket.name}>
-                      {bucket.icon} {bucket.displayName}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={newGoal.bucket}
+                    onChange={(e) => setNewGoal({ ...newGoal, bucket: e.target.value })}
+                    className="w-full p-3 pl-12 rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+                  >
+                    {DEFAULT_BUCKETS.map(bucket => (
+                      <option key={bucket.name} value={bucket.name}>
+                        {bucket.displayName}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <BucketIcon bucketName={newGoal.bucket} size={24} className="text-amber-600 dark:text-amber-500" />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -231,7 +237,7 @@ export default function GoalsPage() {
                 return (
                   <div key={goal.id} className="card p-6">
                     <div className="flex items-start gap-4 mb-4">
-                      <span className="text-3xl">{getBucketIcon(goal.bucket)}</span>
+                      <BucketIcon bucketName={goal.bucket} size={40} className="text-amber-600 dark:text-amber-500 mt-1" />
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg text-stone-900 dark:text-stone-100">
                           {goal.title}
@@ -295,7 +301,7 @@ export default function GoalsPage() {
               {pausedGoals.map(goal => (
                 <div key={goal.id} className="card p-6 opacity-60">
                   <div className="flex items-start gap-4 mb-4">
-                    <span className="text-3xl">{getBucketIcon(goal.bucket)}</span>
+                    <BucketIcon bucketName={goal.bucket} size={40} className="text-stone-600 dark:text-stone-400 mt-1" />
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg text-stone-900 dark:text-stone-100">
                         {goal.title}

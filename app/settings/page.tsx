@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
+import BucketIcon from '@/components/BucketIcon';
 import { getUser, saveUser, getGoals, getDailyCards, getWeeklyReviews } from '@/lib/storage';
 import { DEFAULT_BUCKETS } from '@/lib/buckets';
 
@@ -156,7 +157,11 @@ export default function SettingsPage() {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{bucket.icon}</span>
+                  <BucketIcon
+                    bucketName={bucket.name}
+                    size={32}
+                    className={selectedBuckets.includes(bucket.name) ? 'text-amber-600 dark:text-amber-500' : 'text-stone-600 dark:text-stone-400'}
+                  />
                   <div className="flex-1">
                     <div className="font-semibold text-stone-900 dark:text-stone-100">
                       {bucket.displayName}

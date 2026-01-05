@@ -6,6 +6,7 @@ import { DEFAULT_BUCKETS } from '@/lib/buckets';
 import { getUser, saveUser, addGoal } from '@/lib/storage';
 import { generateWeeklyCards } from '@/lib/card-generator';
 import GoldStar from '@/components/GoldStar';
+import BucketIcon from '@/components/BucketIcon';
 
 interface GoalForm {
   bucket: string;
@@ -138,8 +139,12 @@ export default function OnboardingPage() {
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0 text-4xl">
-                        {bucket.icon}
+                      <div className="flex-shrink-0">
+                        <BucketIcon
+                          bucketName={bucket.name}
+                          size={48}
+                          className={selectedBuckets.includes(bucket.name) ? 'text-amber-600 dark:text-amber-500' : 'text-stone-600 dark:text-stone-400'}
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-lg text-stone-900 dark:text-stone-50 mb-1">
@@ -199,8 +204,13 @@ export default function OnboardingPage() {
                           <div className="font-semibold text-lg text-stone-900 dark:text-stone-50 mb-1">
                             {goal.title}
                           </div>
-                          <div className="text-sm text-stone-600 dark:text-stone-400">
-                            {goal.weeklyMinimum}x per week • {DEFAULT_BUCKETS.find(b => b.name === goal.bucket)?.displayName}
+                          <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
+                            <span>{goal.weeklyMinimum}x per week</span>
+                            <span>•</span>
+                            <div className="flex items-center gap-1.5">
+                              <BucketIcon bucketName={goal.bucket} size={16} className="text-stone-600 dark:text-stone-400" />
+                              <span>{DEFAULT_BUCKETS.find(b => b.name === goal.bucket)?.displayName}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -215,20 +225,25 @@ export default function OnboardingPage() {
                   <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-3">
                     Bucket
                   </label>
-                  <select
-                    value={currentGoal.bucket}
-                    onChange={(e) => setCurrentGoal({ ...currentGoal, bucket: e.target.value })}
-                    className="w-full p-4 text-base"
-                  >
-                    {selectedBuckets.map(bucketName => {
-                      const bucket = DEFAULT_BUCKETS.find(b => b.name === bucketName);
-                      return (
-                        <option key={bucketName} value={bucketName}>
-                          {bucket?.icon} {bucket?.displayName}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={currentGoal.bucket}
+                      onChange={(e) => setCurrentGoal({ ...currentGoal, bucket: e.target.value })}
+                      className="w-full p-4 text-base pl-14"
+                    >
+                      {selectedBuckets.map(bucketName => {
+                        const bucket = DEFAULT_BUCKETS.find(b => b.name === bucketName);
+                        return (
+                          <option key={bucketName} value={bucketName}>
+                            {bucket?.displayName}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <BucketIcon bucketName={currentGoal.bucket} size={32} className="text-amber-600 dark:text-amber-500" />
+                    </div>
+                  </div>
                 </div>
 
                 <div>

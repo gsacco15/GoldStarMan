@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import GoldStar from '@/components/GoldStar';
+import BucketIcon from '@/components/BucketIcon';
 import { getUser, getCardsByDate, updateDailyCard, getGoals } from '@/lib/storage';
 import { getTodayString, formatDisplayDate, formatDayOfWeek } from '@/lib/date-utils';
 import { getWeeklyStats, hasMetWeeklyMinimum } from '@/lib/card-generator';
 import { DailyCard, Goal } from '@/types';
-import { getBucketIcon } from '@/lib/buckets';
 
 export default function TodayPage() {
   const router = useRouter();
@@ -152,9 +152,13 @@ export default function TodayPage() {
                     style={{ animationDelay: `${0.15 + index * 0.05}s` }}
                   >
                     <div className="flex items-start gap-4 mb-6">
-                      <span className="text-4xl mt-1">
-                        {goal ? getBucketIcon(goal.bucket) : '⭐'}
-                      </span>
+                      <div className="mt-1">
+                        {goal ? (
+                          <BucketIcon bucketName={goal.bucket} size={48} className="text-amber-600 dark:text-amber-500" />
+                        ) : (
+                          <GoldStar size={48} />
+                        )}
+                      </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-xl text-stone-900 dark:text-stone-50 mb-2">
                           {card.title}
@@ -224,9 +228,13 @@ export default function TodayPage() {
                     style={{ animationDelay: `${0.2 + index * 0.05}s` }}
                   >
                     <div className="flex items-center gap-4">
-                      <span className="text-3xl opacity-75">
-                        {goal ? getBucketIcon(goal.bucket) : '⭐'}
-                      </span>
+                      <div className="opacity-75">
+                        {goal ? (
+                          <BucketIcon bucketName={goal.bucket} size={40} className="text-stone-600 dark:text-stone-400" />
+                        ) : (
+                          <GoldStar size={40} />
+                        )}
+                      </div>
                       <div className="flex-1">
                         <div className="font-semibold text-stone-900 dark:text-stone-50 mb-1">
                           {card.title}
